@@ -1,13 +1,13 @@
-package com.kafka.producer;
+package com.pipeline.producer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ProducerApplication {
+public class RestApiProducer {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ProducerApplication.class, args);
+		SpringApplication.run(RestApiProducer.class, args);
 	}
 
 }

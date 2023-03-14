@@ -22,7 +22,7 @@ public class KafkaApplication {
 	/**
 	 * 카프카 클러스터 서버의 host, ip 정보
 	 */
-	private final static String BOOTSTRAP_SERVERS = "localhost:9092";
+	private final static String BOOTSTRAP_SERVERS = "127.0.0.1:9092";
 
 	public static void main(String[] args) {
 
@@ -40,19 +40,20 @@ public class KafkaApplication {
 			while(true){
 
 				// set ProducerRecord
-				String topic = "test";           // topic name
 				Integer partition = 0;           // partition number (default: Round Robin)
 				String key = "key-" + idx;       // key  (default: null)
 				String data = "record-"+ idx;    // data
 
-				ProducerRecord<String, String> record = new ProducerRecord<>(topic, data);
-				ProducerRecord<String, String> record2 = new ProducerRecord<>(topic, key, data);
-				ProducerRecord<String, String> record3 = new ProducerRecord<>(topic, partition, key, data);
+				ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, data);
+				ProducerRecord<String, String> record2 = new ProducerRecord<>(TOPIC_NAME, key, data);
+				ProducerRecord<String, String> record3 = new ProducerRecord<>(TOPIC_NAME, partition, key, data);
 
 				// send record
 				producer.send(record);
 
-				System.out.println("producer.send() >> [topic:" + topic + "][data:" + data + "]");
+				System.out.println("===============================================================");
+				System.out.println("producer.send() >> [topic:" + TOPIC_NAME + "][data:" + data + "]");
+				System.out.println("----------------------------------------------------------------");
 				Thread.sleep(1000);
 				idx++;
 			}

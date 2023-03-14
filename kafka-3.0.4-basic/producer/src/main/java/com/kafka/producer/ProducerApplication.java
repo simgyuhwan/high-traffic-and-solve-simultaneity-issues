@@ -1,5 +1,6 @@
 package com.kafka.producer;
 
+import com.kafka.producer.common.Bar2;
 import com.kafka.producer.common.Foo2;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -19,7 +20,12 @@ import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.converter.JsonMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.kafka.support.mapping.DefaultJackson2JavaTypeMapper;
+import org.springframework.kafka.support.mapping.Jackson2JavaTypeMapper;
 import org.springframework.util.backoff.FixedBackOff;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @SpringBootApplication
@@ -36,34 +42,33 @@ public class ProducerApplication {
 				new DeadLetterPublishingRecoverer(template), new FixedBackOff(1000L, 2));
 	}
 
+	/**
+	 * 같은 필드 일 때
+	 */
 	@Bean
 	public RecordMessageConverter converter() {
-		return new JsonMessageConverter();
-	}
+		JsonMessageConverter converter = new JsonMessageConverter();
+		DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+		typeMapper.setTypePrecedence(Jackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
+		typeMapper.addTrustedPackages("com.kafka.producer.common");
 
-	@KafkaListener(id = "fooGroup", topics = "first")
-	public void listen(Foo2 foo) {
-		log.info("Received: " + foo);
-		if(foo.getFoo().startsWith("fail")) {
-			throw new RuntimeException("failed");
-		}
-		this.exec.execute(() -> System.out.println("Hit Enter to terminate..."));
-	}
+		Map<String, Class<?>> mappings = new HashMap<>();
+		mappings.put("foo", Foo2.class);
+		mappings.put("bar", Bar2.class);
 
-	@KafkaListener(id = "dltGroup", topics = "first.DLT")
-	public void dltListen(byte[] in) {
-		log.info("Received from DLT: " + new String(in));
-		this.exec.execute(() ->System.out.println("Hit Enter to terminate..."));
+		typeMapper.setIdClassMapping(mappings);
+		converter.setTypeMapper(typeMapper);
+		return converter;
 	}
 
 	@Bean
-	public NewTopic topic() {
-		return new NewTopic("first",1, (short) 1);
+	public NewTopic foos() {
+		return new NewTopic("foos",1, (short) 1);
 	}
 
 	@Bean
-	public NewTopic dlt() {
-		return new NewTopic("first.DLT", 1, (short) 1);
+	public NewTopic bars() {
+		return new NewTopic("bars", 1, (short) 1);
 	}
 
 	@Bean
